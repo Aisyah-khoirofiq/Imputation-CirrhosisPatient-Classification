@@ -2,6 +2,8 @@
 
 Ini adalah aplikasi web Streamlit yang dirancang untuk melatih dan membandingkan dua model klasifikasi yang telah dioptimalkan (Support Vector Machine dan Random Forest) untuk memprediksi hasil akhir pasien berdasarkan data klinis. Aplikasi ini dirancang khusus untuk menangani tantangan umum dalam data medis, seperti nilai yang hilang (*missing values*) dan kelas yang tidak seimbang (*imbalanced classes*).
 
+[Colab](https://colab.research.google.com/drive/1hC-brk1XWrn-SQa9wkiojzlxLiFDROqa?usp=sharing)
+
 Fitur utama dari aplikasi ini adalah penggunaan pipeline `scikit-learn` dan `imblearn` yang terintegrasi untuk menerapkan alur kerja prapemrosesan dan pemodelan yang metodologis dan kuat, menggunakan parameter-parameter terbaik yang telah ditemukan dari analisis sebelumnya.
 
 ## Fitur Utama ✨
