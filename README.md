@@ -1,68 +1,128 @@
-# Pengklasifikasi Hasil Akhir Pasien yang Dioptimalkan
+<div align="center">
 
-Ini adalah aplikasi web Streamlit yang dirancang untuk melatih dan membandingkan dua model klasifikasi yang telah dioptimalkan (Support Vector Machine dan Random Forest) untuk memprediksi hasil akhir pasien berdasarkan data klinis. Aplikasi ini dirancang khusus untuk menangani tantangan umum dalam data medis, seperti nilai yang hilang (*missing values*) dan kelas yang tidak seimbang (*imbalanced classes*).
+🩺 Cirrhosis Patient Outcome Prediction App 🩺
+An interactive web application to predict cirrhosis patient outcomes using a machine learning model built with Scikit-learn and Streamlit.
 
-[Colab](https://colab.research.google.com/drive/1hC-brk1XWrn-SQa9wkiojzlxLiFDROqa?usp=sharing)
+</div>
 
-Fitur utama dari aplikasi ini adalah penggunaan pipeline `scikit-learn` dan `imblearn` yang terintegrasi untuk menerapkan alur kerja prapemrosesan dan pemodelan yang metodologis dan kuat, menggunakan parameter-parameter terbaik yang telah ditemukan dari analisis sebelumnya.
+This project provides an end-to-end solution for predicting the status of patients with cirrhosis based on clinical data. The application leverages a pre-trained Random Forest model, which was determined to be the most effective after a thorough evaluation of various data imputation and modeling techniques.
 
-## Fitur Utama ✨
+✨ Live Application Preview
+Below is a preview of the interactive Streamlit application. Users can input patient data on the left sidebar and instantly receive a prediction on the main screen.
 
--   **Antarmuka Pengguna Interaktif**: Dibangun dengan Streamlit untuk kemudahan penggunaan.
--   **Model yang Telah Dioptimalkan**: Menggunakan konfigurasi hyperparameter terbaik yang telah ditentukan sebelumnya untuk **Support Vector Machine (SVM)** dan **Random Forest**, sehingga proses pelatihan menjadi sangat cepat.
--   **Penanganan *Missing Value* Otomatis**:
-    * Menggunakan **KNN Imputer** untuk mengisi nilai yang hilang pada fitur numerik.
-    * Menggunakan **Simple Imputer** untuk fitur kategorikal.
--   **Penanganan Kelas Tidak Seimbang**: Mengintegrasikan **SMOTE (Synthetic Minority Over-sampling Technique)** ke dalam pipeline pelatihan untuk menyeimbangkan set data latih dan meningkatkan kemampuan model dalam memprediksi kelas minoritas.
--   **Pembersihan Data Otomatis**: Secara otomatis mendeteksi dan menghapus kolom identifier umum (seperti 'ID', 'id', 'Unnamed: 0') saat data diunggah.
--   **Visualisasi Komparatif**: Menampilkan hasil dari kedua model dalam *tab* terpisah untuk perbandingan yang mudah, termasuk:
-    * Akurasi pada data uji.
-    * Laporan Klasifikasi (Presisi, Recall, F1-Score).
-    * Visualisasi *Confusion Matrix*.
-    * Grafik distribusi kelas sebelum dan sesudah SMOTE.
--   **Prediksi Tunggal**: Sebuah formulir memungkinkan pengguna untuk memasukkan data pasien baru dan mendapatkan prediksi hasil akhir dari model yang dipilih.
+(Here you can add a screenshot of your application)
+[Insert Screenshot of the Streamlit App Here]
 
-## Cara Menjalankan Aplikasi
+🚀 Core Features
+📊 Interactive Data Input: A user-friendly form in the sidebar for entering patient clinical data.
 
-### 1. Prasyarat
+⚡ Instant Predictions: Real-time classification of the patient's status: D (Death), C (Censored), or CL (Censored due to Liver Transplant).
 
--   Python 3.7+
--   `pip` (Manajer paket Python)
+📈 Model Confidence Score: A probability breakdown for each class to indicate the model's confidence in its prediction.
 
-### 2. Pengaturan
+📋 Input Summary: A clear display of the user-entered data for verification before prediction.
 
-1.  **Unduh file proyek.**
-    Letakkan `main.py`, `requirements.txt`, dan `packages.txt` di dalam direktori yang sama.
+🛠️ Technology & Workflow
+This project follows a standard MLOps workflow, separating model training from application serving.
 
-2.  **Buat lingkungan virtual (direkomendasikan):**
-    ```bash
-    python -m venv venv
-    source venv/bin/activate  # Pada Windows, gunakan `venv\Scripts\activate`
-    ```
+Workflow Diagram
++------------------+     +--------------------+     +---------------------+
+| cirrhosis.csv    | --> |   train_model.py   | --> | cirrhosis_model.pkl |
+| (Raw Data)       |     | (Preprocessing &   |     | (Saved Pipeline)    |
+|                  |     |  Training Script)  |     |                     |
++------------------+     +--------------------+     +----------+----------+
+                                                               |
+                                                               v
++------------------+     +--------------------+     +----------+----------+
+| Prediction       | <-- |      app.py        | <-- |   User Input        |
+| (App Output)     |     | (Streamlit App)    |     | (Web Form)          |
+|                  |     |                    |     |                     |
++------------------+     +--------------------+     +---------------------+
 
-3.  **Instal pustaka yang diperlukan:**
-    ```bash
-    pip install -r requirements.txt
-    ```
+Tech Stack
+Backend & ML: Python, Scikit-learn, Pandas, NumPy, Imbalanced-learn
 
-### 3. Menjalankan Aplikasi
+Web Framework: Streamlit
 
-1.  **Buka terminal** dan navigasikan ke direktori tempat Anda menyimpan file-file aplikasi.
+Model Persistence: Joblib
 
-2.  **Jalankan perintah Streamlit berikut:**
-    ```bash
-    streamlit run app.py
-    ```
+⚙️ How to Run the Project
+Follow these steps to get the application running on your local machine.
 
-3.  Browser web Anda akan otomatis terbuka dengan aplikasi yang berjalan. Jika tidak, buka browser Anda dan kunjungi `http://localhost:8501`.
+1. Setup Environment
+First, ensure all project files (app.py, train_model.py, cirrhosis.csv, requirements.txt) are in the same directory. Then, install the required libraries:
 
-## Cara Kerja Aplikasi
+# Navigate to your project folder
+# cd /path/to/your/project
 
-1.  **Pemuatan Data**: Pengguna mengunggah file CSV. Aplikasi akan memuat data, membersihkan nama kolom, dan secara otomatis menghapus kolom identifier yang tidak relevan.
-2.  **Pra-pemrosesan**: Saat tombol "Train Optimized Models" ditekan, data yang targetnya (`Status`) tidak hilang akan dibagi menjadi set latih dan uji.
-3.  **Pipeline Pelatihan**: Untuk setiap model (SVM dan RF), sebuah pipeline `imblearn` yang cerdas akan dijalankan **hanya pada data latih**. Pipeline ini melakukan langkah-langkah berikut secara berurutan:
-    * **Prapemrosesan Fitur**: Mengisi nilai yang hilang, melakukan penskalaan pada data numerik, dan *one-hot encoding* pada data kategorikal.
-    * **SMOTE**: Menyeimbangkan data latih yang telah diproses.
-    * **Pelatihan Classifier**: Melatih model SVM atau Random Forest menggunakan hyperparameter optimal yang telah ditentukan sebelumnya.
-4.  **Evaluasi**: Model yang telah dilatih kemudian digunakan untuk membuat prediksi pada **data uji yang asli (tidak seimbang)**. Metrik kinerja dihitung berdasarkan prediksi ini.
-5.  **Tampilan**: Hasil dari setiap model ditampilkan dalam *tab* terpisah, dan formulir prediksi tunggal menjadi tersedia untuk digunakan.
+# Install dependencies from the requirements file
+pip install -r requirements.txt
+
+2. Train and Save the Model
+Run the training script. This will process the dataset, train the best model, and save the complete pipeline as cirrhosis_model.pkl. This step only needs to be performed once.
+
+python train_model.py
+
+3. Launch the Streamlit App
+Once the model file is created, launch the Streamlit application:
+
+streamlit run app.py
+
+Your default web browser will open with the app running.
+
+🔬 Model Performance & Evaluation
+The final model was selected after a rigorous evaluation documented in the Jupyter Notebook Imputation_KNN_(SVM_+_RF)_Final.ipynb.
+
+Training Summary
+Data Imputation: KNNImputer was tested with various k values (from 3 to 21).
+
+Models Compared: Support Vector Machine (SVM) vs. Random Forest.
+
+Evaluation Metric: Weighted F1-Score was chosen to balance precision and recall on the imbalanced dataset.
+
+Final Model: Random Forest (k=7)
+The experiments concluded that the Random Forest classifier combined with a KNN Imputer (k=7) yielded the best and most stable performance.
+
+🏆 Best Model Performance: Random Forest (k=7)
+
+Metric
+
+Score
+
+F1-Score (Weighted)
+
+0.7381
+
+Accuracy
+
+0.7619
+
+Sensitivity (Recall)
+
+0.7619
+
+Precision (Weighted)
+
+0.7159
+
+Confusion Matrices of Best Models
+The confusion matrices below visualize the performance of the top-performing models on the held-out test set.
+
+Best Random Forest Model (Imputer K=7)
+
+           | Predicted: D | Predicted: C | Predicted: CL |
+-----------------------------------------------------------
+  True: D  |      25      |       5      |       0       |
+  True: C  |      8       |      41      |       0       |
+  True: CL |      7       |       2      |       2       |
+
+Best SVM Model (Imputer K=17)
+
+           | Predicted: D | Predicted: C | Predicted: CL |
+-----------------------------------------------------------
+  True: D  |      27      |       3      |       0       |
+  True: C  |      11      |      38      |       0       |
+  True: CL |      8       |       2      |       1       |
+
+⚠️ Disclaimer
+This application is an educational and demonstrational tool. The predictions are based on a machine learning model and should not be used for actual medical diagnosis or decision-making. Always consult a qualified healthcare professional for any medical concerns.
