@@ -172,7 +172,9 @@ This application is intended for educational and demonstrational purposes only. 
 ## 📄 License
 Dataset License
 The cirrhosis patient dataset used in this project is from the UCI Machine Learning Repository:
+
 Source: https://archive.ics.uci.edu/dataset/878/cirrhosis+patient+survival+prediction+dataset-1
+
 Dataset Citation: Dua, D. and Graff, C. (2019). UCI Machine Learning Repository [http://archive.ics.uci.edu/ml]. Irvine, CA: University of California, School of Information and Computer Science.
 
 ## 👥 Contributors
