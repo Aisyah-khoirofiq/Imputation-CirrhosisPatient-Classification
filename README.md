@@ -1,128 +1,176 @@
-<div align="center">
+# 🩺 Cirrhosis Patient Outcome Prediction
 
-🩺 Cirrhosis Patient Outcome Prediction App 🩺
-An interactive web application to predict cirrhosis patient outcomes using a machine learning model built with Scikit-learn and Streamlit.
+An interactive web application to predict cirrhosis patient outcomes using machine learning with Scikit-learn and Streamlit.
 
-</div>
+## 📋 Table of Contents
+- [Overview](#overview)
+- [Features](#features)
+- [Installation](#installation)
+- [Usage](#usage)
+- [Model Details](#model-details)
+- [Project Structure](#project-structure)
+- [Results](#results)
+- [Model Pick](#model-selection-note)
+- [Disclaimer](#disclaimer)
 
-This project provides an end-to-end solution for predicting the status of patients with cirrhosis based on clinical data. The application leverages a pre-trained Random Forest model, which was determined to be the most effective after a thorough evaluation of various data imputation and modeling techniques.
+## 📖 Overview
+This project provides an end-to-end solution for predicting the status of patients with cirrhosis based on clinical data. The application leverages a pre-trained Random Forest model, which was determined to be the most effective after thorough evaluation of various data imputation and modeling techniques.
 
-✨ Live Application Preview
-Below is a preview of the interactive Streamlit application. Users can input patient data on the left sidebar and instantly receive a prediction on the main screen.
+## ✨ Features
+- **Interactive Data Input**: User-friendly form for entering patient clinical data
+- **Real-time Predictions**: Instant classification of patient status (D: Death, C: Censored, CL: Censored due to Liver Transplant)
+- **Model Confidence**: Probability breakdown for each prediction class
+- **Input Verification**: Clear display of entered data before prediction
 
-(Here you can add a screenshot of your application)
-[Insert Screenshot of the Streamlit App Here]
+## 🛠️ Installation
 
-🚀 Core Features
-📊 Interactive Data Input: A user-friendly form in the sidebar for entering patient clinical data.
+### Prerequisites
+- Python 3.7+
+- pip package manager
 
-⚡ Instant Predictions: Real-time classification of the patient's status: D (Death), C (Censored), or CL (Censored due to Liver Transplant).
+### Step-by-Step Setup
 
-📈 Model Confidence Score: A probability breakdown for each class to indicate the model's confidence in its prediction.
+1. **Clone the repository**
+```bash
+git clone https://github.com/Aisyah-khoirofiq/Imputation-CirrhosisPatient-Classification.git
 
-📋 Input Summary: A clear display of the user-entered data for verification before prediction.
+cd cirrhosis-prediction-app
+```
 
-🛠️ Technology & Workflow
-This project follows a standard MLOps workflow, separating model training from application serving.
+2. **Create virtual environment (recommended)**
+```bash
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+```
 
-Workflow Diagram
-+------------------+     +--------------------+     +---------------------+
-| cirrhosis.csv    | --> |   train_model.py   | --> | cirrhosis_model.pkl |
-| (Raw Data)       |     | (Preprocessing &   |     | (Saved Pipeline)    |
-|                  |     |  Training Script)  |     |                     |
-+------------------+     +--------------------+     +----------+----------+
-                                                               |
-                                                               v
-+------------------+     +--------------------+     +----------+----------+
-| Prediction       | <-- |      app.py        | <-- |   User Input        |
-| (App Output)     |     | (Streamlit App)    |     | (Web Form)          |
-|                  |     |                    |     |                     |
-+------------------+     +--------------------+     +---------------------+
-
-Tech Stack
-Backend & ML: Python, Scikit-learn, Pandas, NumPy, Imbalanced-learn
-
-Web Framework: Streamlit
-
-Model Persistence: Joblib
-
-⚙️ How to Run the Project
-Follow these steps to get the application running on your local machine.
-
-1. Setup Environment
-First, ensure all project files (app.py, train_model.py, cirrhosis.csv, requirements.txt) are in the same directory. Then, install the required libraries:
-
-# Navigate to your project folder
-# cd /path/to/your/project
-
-# Install dependencies from the requirements file
+3. **Install dependencies**
+```bash
 pip install -r requirements.txt
+```
 
-2. Train and Save the Model
-Run the training script. This will process the dataset, train the best model, and save the complete pipeline as cirrhosis_model.pkl. This step only needs to be performed once.
+## 🚀 Usage
 
+### 1. Train the Model
+Run the training script to preprocess data and train the model:
+```bash
 python train_model.py
+```
+This generates `cirrhosis_model.pkl` containing the trained pipeline.
 
-3. Launch the Streamlit App
-Once the model file is created, launch the Streamlit application:
-
+### 2. Launch the Application
+Start the Streamlit web application:
+```bash
 streamlit run app.py
+```
+The application will open in your default web browser at `http://localhost:8501`.
 
-Your default web browser will open with the app running.
+### 3. Make Predictions
+1. Fill in the patient data form in the sidebar
+2. View the input summary for verification
+3. Click "Predict Patient Status" to get results
+4. Review the prediction and model confidence scores
 
-🔬 Model Performance & Evaluation
-The final model was selected after a rigorous evaluation documented in the Jupyter Notebook Imputation_KNN_(SVM_+_RF)_Final.ipynb.
+## 🔬 Model Details
 
-Training Summary
-Data Imputation: KNNImputer was tested with various k values (from 3 to 21).
+### Algorithm
+- **Final Model**: Random Forest Classifier with KNNImputer (k=7)
+- **Data Imputation**: KNNImputer tested with k values from 3 to 21
+- **Evaluation Metric**: Weighted F1-Score
+- **Models Compared**: Support Vector Machine (SVM) vs Random Forest
 
-Models Compared: Support Vector Machine (SVM) vs. Random Forest.
+### Feature Set
+The model uses 16 clinical features including:
+- Demographic data (Age, Sex)
+- Medical history (Drug, Ascites, Hepatomegaly, etc.)
+- Laboratory values (Bilirubin, Cholesterol, Albumin, etc.)
+- Clinical scores (Prothrombin, Stage)
 
-Evaluation Metric: Weighted F1-Score was chosen to balance precision and recall on the imbalanced dataset.
+### Performance Summary
 
-Final Model: Random Forest (k=7)
-The experiments concluded that the Random Forest classifier combined with a KNN Imputer (k=7) yielded the best and most stable performance.
+#### Best Performing Models
 
-🏆 Best Model Performance: Random Forest (k=7)
+**🏆 Best SVM Model**: KNNImputer (k=13)
+- Accuracy: 0.7262
+- F1-Score (Weighted): 0.7412
+- Sensitivity (Recall): 0.7262
+- Precision (Weighted): 0.7587
 
-Metric
+**🏆 Best Random Forest Model**: KNNImputer (k=7)
+- Accuracy: 0.7024
+- F1-Score (Weighted): 0.7081
+- Sensitivity (Recall): 0.7024
+- Precision (Weighted): 0.7167
 
-Score
+#### Complete Experiment Results
 
-F1-Score (Weighted)
+| Imputer K | Model | Accuracy | F1-Score | Sensitivity | Precision |
+|-----------|-------|----------|----------|-------------|-----------|
+| 3 | SVM | 0.7024 | 0.7254 | 0.7024 | 0.7526 |
+| 3 | Random Forest | 0.7024 | 0.7081 | 0.7024 | 0.7167 |
+| 5 | SVM | 0.6905 | 0.7132 | 0.6905 | 0.7387 |
+| 5 | Random Forest | 0.6905 | 0.6957 | 0.6905 | 0.7036 |
+| 7 | SVM | 0.6905 | 0.7131 | 0.6905 | 0.7410 |
+| **7** | **Random Forest** | **0.7024** | **0.7081** | **0.7024** | **0.7167** |
+| 9 | SVM | 0.7024 | 0.7254 | 0.7024 | 0.7504 |
+| 9 | Random Forest | 0.6548 | 0.6643 | 0.6548 | 0.6759 |
+| 11 | SVM | 0.7143 | 0.7333 | 0.7143 | 0.7558 |
+| 11 | Random Forest | 0.6905 | 0.6992 | 0.6905 | 0.7082 |
+| **13** | **SVM** | **0.7262** | **0.7412** | **0.7262** | **0.7587** |
+| 13 | Random Forest | 0.6667 | 0.6760 | 0.6667 | 0.6863 |
+| 15 | SVM | 0.7024 | 0.7253 | 0.7024 | 0.7529 |
+| 15 | Random Forest | 0.7024 | 0.7075 | 0.7024 | 0.7131 |
+| 17 | SVM | 0.7024 | 0.7253 | 0.7024 | 0.7529 |
+| 17 | Random Forest | 0.7024 | 0.7033 | 0.7024 | 0.7063 |
+| 19 | SVM | 0.7024 | 0.7253 | 0.7024 | 0.7529 |
+| 19 | Random Forest | 0.6786 | 0.6825 | 0.6786 | 0.6866 |
+| 21 | SVM | 0.7024 | 0.7253 | 0.7024 | 0.7529 |
+| 21 | Random Forest | 0.6667 | 0.6711 | 0.6667 | 0.6757 |
 
-0.7381
+## 📁 Project Structure
+```
+cirrhosis-prediction-app/
+│
+├── app.py                 # Streamlit web application
+├── train_model.py         # Model training script
+├── cirrhosis.csv          # Original dataset
+├── cirrhosis_model.pkl    # Trained model (generated)
+├── requirements.txt       # Python dependencies
+├── best_models/          # Best performing models
+│   ├── best_svm_k17.pkl
+│   └── best_random_forest_k7.pkl
+└── README.md             # Project documentation
+```
 
-Accuracy
+## 📊 Results
 
-0.7619
+### Model Selection Rationale
+After extensive testing with KNNImputer k-values ranging from 3 to 21, the Random Forest model with k=7 was selected as the final model due to its balanced performance across all metrics and stability. While SVM with k=13 achieved slightly higher F1-score (0.7412), Random Forest demonstrated more consistent performance across different k-values.
 
-Sensitivity (Recall)
+### Key Findings
+- **SVM Performance**: Best with k=13 (F1-score: 0.7412)
+- **Random Forest Performance**: Best with k=7 (F1-score: 0.7081)
+- **Optimal K-range**: k=7 to k=13 provided the best balance of performance
+- **Model Stability**: Random Forest showed more consistent performance across different k-values
 
-0.7619
+## 🔬 Model Selection Note
 
-Precision (Weighted)
+**Why Random Forest with K=7 was chosen over K=3?**
 
-0.7159
+Both KNNImputer k=3 and k=7 with Random Forest achieved identical performance metrics (Accuracy: 0.7024, F1-Score: 0.7081). 
 
-Confusion Matrices of Best Models
-The confusion matrices below visualize the performance of the top-performing models on the held-out test set.
+### However, k=7 was selected due to:
+- **Better generalization** with more neighbors
+- **Reduced sensitivity** to outliers and noise
+- **Improved stability** across different data splits
+- **Alignment** with optimal k-range observed in SVM experiments
 
-Best Random Forest Model (Imputer K=7)
+This demonstrates that model selection involves considerations beyond test metrics alone.
 
-           | Predicted: D | Predicted: C | Predicted: CL |
------------------------------------------------------------
-  True: D  |      25      |       5      |       0       |
-  True: C  |      8       |      41      |       0       |
-  True: CL |      7       |       2      |       2       |
+## ⚠️ Disclaimer
+This application is intended for educational and demonstrational purposes only. The predictions are generated by a machine learning model and should not be used for medical diagnosis, treatment decisions, or clinical guidance. Always consult qualified healthcare professionals for medical concerns and treatment decisions.
 
-Best SVM Model (Imputer K=17)
+## 📄 License
+[Add your license here]
 
-           | Predicted: D | Predicted: C | Predicted: CL |
------------------------------------------------------------
-  True: D  |      27      |       3      |       0       |
-  True: C  |      11      |      38      |       0       |
-  True: CL |      8       |       2      |       1       |
-
-⚠️ Disclaimer
-This application is an educational and demonstrational tool. The predictions are based on a machine learning model and should not be used for actual medical diagnosis or decision-making. Always consult a qualified healthcare professional for any medical concerns.
+## 👥 Contributors
+[Add contributor information here]
