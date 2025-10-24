@@ -1,9 +1,10 @@
 import streamlit as st
 import pandas as pd
 import joblib
-import numpy as np
 
-# --- Page Configuration ---
+# =====================================================
+# 🩺 KONFIGURASI HALAMAN
+# =====================================================
 st.set_page_config(
     page_title="Prediksi Status Pasien Sirosis",
     page_icon="🩺",
@@ -11,153 +12,158 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# --- Load Model Pipeline ---
+# =====================================================
+# 🧠 MEMUAT MODEL YANG TELAH DILATIH
+# =====================================================
 try:
     model = joblib.load('cirrhosis_model.pkl')
 except FileNotFoundError:
-    st.error("File model tidak ditemukan. Pastikan 'cirrhosis_model.pkl' ada di direktori yang sama.")
+    st.error("❌ File model tidak ditemukan. Pastikan file 'cirrhosis_model.pkl' berada di direktori yang sama dengan aplikasi ini.")
     st.stop()
 except Exception as e:
-    st.error(f"Terjadi kesalahan saat memuat model: {e}")
+    st.error(f"⚠️ Terjadi kesalahan saat memuat model: {e}")
     st.stop()
 
-
-# --- Application Header ---
-st.title("🩺 Aplikasi Klasifikasi Hasil Pasien Sirosis")
+# =====================================================
+# 🧾 JUDUL DAN DESKRIPSI APLIKASI
+# =====================================================
+st.title("🩺 Aplikasi Prediksi Status Pasien Sirosis")
 st.markdown("""
-Aplikasi ini menggunakan model *Random Forest* yang telah dilatih untuk memprediksi status pasien sirosis berdasarkan data klinis. 
-Masukkan data pasien di sidebar untuk melihat hasil prediksi.
+Aplikasi ini menggunakan model **Random Forest** yang telah dilatih untuk memprediksi status pasien sirosis 
+berdasarkan data klinis dan laboratorium.  
+Silakan isi data pasien pada tabel input di bawah ini untuk mendapatkan hasil prediksi.
 """)
 
-# --- Sidebar for User Input ---
-st.sidebar.header("Input Data Pasien")
-st.sidebar.markdown("Silakan masukkan nilai untuk setiap fitur di bawah ini.")
+# =====================================================
+# 📋 INPUT DATA TABULAR DI HALAMAN UTAMA
+# =====================================================
+st.subheader("🧍‍♂️ Formulir Input Data Pasien")
 
-# Define mapping for categorical features for user-friendly input
+# Pemetaan fitur kategorikal
 drug_map = {'D-penicillamine': 0, 'Placebo': 1}
-sex_map = {'F': 0, 'M': 1}
-ascites_map = {'N': 0, 'Y': 1}
-hepatomegaly_map = {'N': 0, 'Y': 1}
-spiders_map = {'N': 0, 'Y': 1}
-edema_map = {'N': 0, 'S': 1, 'Y': 2}
-status_map_reverse = {0: 'D (Meninggal)', 1: 'C (Disensor)', 2: 'CL (Disensor karena Transplantasi Hati)'}
+sex_map = {'Perempuan (F)': 0, 'Laki-laki (M)': 1}
+ascites_map = {'Tidak (N)': 0, 'Ya (Y)': 1}
+hepatomegaly_map = {'Tidak (N)': 0, 'Ya (Y)': 1}
+spiders_map = {'Tidak (N)': 0, 'Ya (Y)': 1}
+edema_map = {'Tidak (N)': 0, 'Sedikit (S)': 1, 'Ya (Y)': 2}
+status_map_reverse = {
+    0: 'D (Meninggal)',
+    1: 'C (Disensor)',
+    2: 'CL (Disensor karena Transplantasi Hati)'
+}
 
+# Tata letak kolom input
+col1, col2, col3 = st.columns(3)
 
-def user_input_features():
-    """Creates sidebar widgets and returns a DataFrame of user inputs."""
-    
-    # Use columns for a better layout in the sidebar
-    col1, col2 = st.sidebar.columns(2)
+with col1:
+    n_days = st.number_input('Jumlah Hari (N_Days)', min_value=1, max_value=5000, value=1920)
+    bilirubin = st.number_input('Bilirubin (mg/dl)', min_value=0.3, max_value=30.0, value=1.4, step=0.1)
+    albumin = st.number_input('Albumin (gm/dl)', min_value=1.9, max_value=5.0, value=3.5, step=0.1)
+    alk_phos = st.number_input('Alkali Fosfatase (U/liter)', min_value=200, max_value=14000, value=1980)
+    tryglicerides = st.number_input('Trigliserida (mg/dl)', min_value=30, max_value=600, value=124)
+    ascites = st.selectbox('Asites (Penumpukan Cairan Perut)', list(ascites_map.keys()))
 
-    n_days = col1.slider('Jumlah Hari (N_Days)', 1, 5000, 1920)
-    age = col2.slider('Usia (dalam hari)', 9000, 30000, 18850)
-    
-    stage = st.sidebar.selectbox('Stadium Penyakit (Stage)', [1.0, 2.0, 3.0, 4.0], index=3)
-    
-    drug = col1.selectbox('Obat (Drug)', list(drug_map.keys()), index=1)
-    sex = col2.selectbox('Jenis Kelamin (Sex)', list(sex_map.keys()), index=0)
+with col2:
+    age = st.number_input('Usia (hari)', min_value=9000, max_value=30000, value=18850)
+    cholesterol = st.number_input('Kolesterol (mg/dl)', min_value=100, max_value=1800, value=315)
+    copper = st.number_input('Tembaga (ug/day)', min_value=4, max_value=600, value=96)
+    sgot = st.number_input('SGOT (U/ml)', min_value=10, max_value=620, value=122)
+    platelets = st.number_input('Trombosit (/1000)', min_value=60, max_value=730, value=251)
+    hepatomegaly = st.selectbox('Hepatomegali (Pembesaran Hati)', list(hepatomegaly_map.keys()))
 
-    st.sidebar.markdown("---")
+with col3:
+    stage = st.selectbox('Stadium Penyakit (Stage)', [1.0, 2.0, 3.0, 4.0], index=3)
+    drug = st.selectbox('Jenis Obat yang Diberikan', list(drug_map.keys()), index=1)
+    sex = st.selectbox('Jenis Kelamin', list(sex_map.keys()), index=0)
+    prothrombin = st.number_input('Protrombin (s)', min_value=9.0, max_value=18.0, value=10.7, step=0.1)
+    spiders = st.selectbox('Adakah Spiders?', list(spiders_map.keys()))
+    edema = st.selectbox('Kondisi Edema (Pembengkakan)', list(edema_map.keys()))
 
-    bilirubin = col1.slider('Bilirubin (mg/dl)', 0.3, 30.0, 1.4, 0.1)
-    cholesterol = col2.slider('Kolesterol (mg/dl)', 100, 1800, 315)
-    albumin = col1.slider('Albumin (gm/dl)', 1.9, 5.0, 3.5, 0.1)
-    copper = col2.slider('Tembaga (ug/day)', 4, 600, 96)
-    alk_phos = col1.slider('Alk_Phos (U/liter)', 200, 14000, 1980)
-    sgot = col2.slider('SGOT (U/ml)', 10, 620, 122)
-    tryglicerides = col1.slider('Trigliserida (mg/dl)', 30, 600, 124)
-    platelets = col2.slider('Trombosit (per cubic ml/1000)', 60, 730, 251)
-    prothrombin = col1.slider('Protrombin (s)', 9.0, 18.0, 10.7, 0.1)
+# Membentuk DataFrame input pengguna
+data = {
+    'N_Days': n_days,
+    'Age': age,
+    'Drug': drug_map[drug],
+    'Sex': sex_map[sex],
+    'Ascites': ascites_map[ascites],
+    'Hepatomegaly': hepatomegaly_map[hepatomegaly],
+    'Spiders': spiders_map[spiders],
+    'Edema': edema_map[edema],
+    'Bilirubin': bilirubin,
+    'Cholesterol': cholesterol,
+    'Albumin': albumin,
+    'Copper': copper,
+    'Alk_Phos': alk_phos,
+    'SGOT': sgot,
+    'Tryglicerides': tryglicerides,
+    'Platelets': platelets,
+    'Prothrombin': prothrombin,
+    'Stage': stage
+}
 
-    st.sidebar.markdown("---")
-    
-    ascites = col1.selectbox('Asites (Ascites)', list(ascites_map.keys()))
-    hepatomegaly = col2.selectbox('Hepatomegali (Hepatomegaly)', list(hepatomegaly_map.keys()))
-    spiders = col1.selectbox('Spiders', list(spiders_map.keys()))
-    edema = col2.selectbox('Edema', list(edema_map.keys()))
+input_df = pd.DataFrame(data, index=[0])
 
-    # Map categorical inputs to their numeric equivalents
-    data = {
-        'N_Days': n_days,
-        'Age': age,
-        'Bilirubin': bilirubin,
-        'Cholesterol': cholesterol,
-        'Albumin': albumin,
-        'Copper': copper,
-        'Alk_Phos': alk_phos,
-        'SGOT': sgot,
-        'Tryglicerides': tryglicerides,
-        'Platelets': platelets,
-        'Prothrombin': prothrombin,
-        'Stage': stage,
-        'Drug': drug_map[drug],
-        'Sex': sex_map[sex],
-        'Ascites': ascites_map[ascites],
-        'Hepatomegaly': hepatomegaly_map[hepatomegaly],
-        'Spiders': spiders_map[spiders],
-        'Edema': edema_map[edema],
-    }
-    
-    # The model was trained on these columns in this specific order
-    feature_order = [
-        'N_Days', 'Age', 'Drug', 'Sex', 'Ascites', 'Hepatomegaly', 'Spiders',
-        'Edema', 'Bilirubin', 'Cholesterol', 'Albumin', 'Copper', 'Alk_Phos',
-        'SGOT', 'Tryglicerides', 'Platelets', 'Prothrombin', 'Stage'
-    ]
-    
-    features = pd.DataFrame(data, index=[0])
-    # Ensure the order of columns matches the training data
-    features = features[feature_order] 
-    return features
+# =====================================================
+# 🧩 MENYESUAIKAN KOLOM DENGAN MODEL
+# =====================================================
+if hasattr(model, 'feature_names_in_'):
+    # Pastikan kolom dan urutan sama persis dengan model
+    missing = [col for col in model.feature_names_in_ if col not in input_df.columns]
+    extra = [col for col in input_df.columns if col not in model.feature_names_in_]
 
+    if missing:
+        st.error(f"Kolom berikut hilang dari input: {missing}")
+        st.stop()
+    elif extra:
+        st.warning(f"Kolom tambahan ditemukan dan akan diabaikan: {extra}")
+        input_df = input_df[model.feature_names_in_]
+    else:
+        input_df = input_df[model.feature_names_in_]
 
-# Get user input
-input_df = user_input_features()
+# =====================================================
+# 📊 MENAMPILKAN DATA INPUT
+# =====================================================
+st.markdown("### 📋 Tabel Ringkasan Data Pasien")
+st.dataframe(input_df, use_container_width=True)
 
-# --- Main Panel for Displaying Results ---
-st.subheader("Ringkasan Data Input Pasien")
-st.write(input_df)
-
-# Prediction button
-if st.button('🔮 Prediksi Status Pasien'):
+# =====================================================
+# 🔮 PROSES PREDIKSI
+# =====================================================
+if st.button('🔮 Jalankan Prediksi'):
     try:
-        # Get prediction
         prediction = model.predict(input_df)
         prediction_proba = model.predict_proba(input_df)
 
-        # Get the predicted status label
         predicted_status = status_map_reverse[prediction[0]]
+        st.subheader("📈 Hasil Prediksi")
 
-        st.subheader("Hasil Prediksi")
-        
-        # Display the result with a colored box
-        if prediction[0] == 0: # Meninggal
+        # Warna hasil sesuai kondisi
+        if prediction[0] == 0:
             st.error(f"**Status Prediksi:** {predicted_status}")
-        elif prediction[0] == 2: # Transplantasi
+        elif prediction[0] == 2:
             st.warning(f"**Status Prediksi:** {predicted_status}")
-        else: # Disensor
+        else:
             st.success(f"**Status Prediksi:** {predicted_status}")
 
-        # Display probabilities
-        st.subheader("Tingkat Keyakinan Model (Probabilitas)")
+        # Menampilkan probabilitas
+        st.subheader("📊 Tingkat Keyakinan Model (Probabilitas)")
         proba_df = pd.DataFrame(
             prediction_proba,
             columns=[status_map_reverse[i] for i in range(len(status_map_reverse))],
             index=['Probabilitas']
         )
         st.write(proba_df)
-
-        # Visualize probabilities with a bar chart
         st.bar_chart(proba_df.T)
 
     except Exception as e:
-        st.error(f"Terjadi kesalahan saat melakukan prediksi: {e}")
+        st.error(f"⚠️ Terjadi kesalahan saat melakukan prediksi: {e}")
 
-
-# --- Disclaimer ---
+# =====================================================
+# ⚠️ PENAFIAN
+# =====================================================
 st.markdown("---")
 st.warning("""
-**Penafian (Disclaimer):** Hasil prediksi dari model ini adalah untuk tujuan informasi dan demonstrasi saja. 
-Model ini tidak boleh digunakan sebagai pengganti diagnosis, nasihat, atau perawatan medis profesional. 
-Selalu konsultasikan dengan dokter atau penyedia layanan kesehatan yang berkualifikasi untuk masalah medis apa pun.
+**Penafian (Disclaimer):**  
+Hasil prediksi dari model ini hanya digunakan untuk **tujuan informasi dan edukasi**.  
+Aplikasi ini **bukan alat diagnosis medis** dan tidak dapat menggantikan keputusan dokter atau tenaga kesehatan profesional.
 """)
