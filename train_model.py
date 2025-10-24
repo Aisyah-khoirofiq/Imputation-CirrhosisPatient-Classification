@@ -9,90 +9,83 @@ from imblearn.pipeline import Pipeline as ImbPipeline
 import joblib
 import warnings
 
-# Suppress warnings for cleaner output
+# Supress warnings
 warnings.filterwarnings('ignore', category=UserWarning)
 warnings.filterwarnings('ignore', category=FutureWarning)
 
 def train_and_save_model(data_path='cirrhosis.csv', model_output_path='cirrhosis_model.pkl'):
     """
-    Loads data, trains the best model pipeline, and saves it to a file.
+    Melatih model Random Forest dengan urutan preprocessing:
+    1. Imputer (KNNImputer)
+    2. SMOTE (menyeimbangkan kelas)
+    3. Scaler (StandardScaler)
+    4. Klasifikasi (RandomForestClassifier)
     """
-    print("🚀 Starting model training process...")
+    print("🚀 Memulai proses pelatihan model...")
 
-    # --- 1. Data Loading and Initial Setup ---
+    # --- 1. Muat Data ---
     try:
         df = pd.read_csv(data_path)
-        print("✅ Dataset loaded successfully.")
+        print("✅ Dataset berhasil dimuat.")
     except FileNotFoundError:
-        print(f"❌ Error: '{data_path}' not found. Please ensure the file is in the correct directory.")
+        print(f"❌ File '{data_path}' tidak ditemukan. Pastikan berada di direktori yang sama.")
         return
 
-    # Drop unnecessary ID column and handle target variable
+    # Hapus kolom ID jika ada
     if 'ID' in df.columns:
         df = df.drop('ID', axis=1)
 
+    # --- 2. Penyiapan Target ---
     TARGET = 'Status'
     status_map = {'D': 0, 'C': 1, 'CL': 2}
     df[TARGET] = df[TARGET].map(status_map)
     df.dropna(subset=[TARGET], inplace=True)
     df[TARGET] = df[TARGET].astype(int)
+    print(f"🎯 Variabel target '{TARGET}' siap digunakan.")
 
-    print(f"🎯 Target variable '{TARGET}' is ready.")
-
-    # --- 2. Feature Preprocessing ---
-    # Convert categorical columns to numeric using LabelEncoder
+    # --- 3. Encoding Fitur Kategorikal ---
     categorical_cols = df.select_dtypes(include=['object']).columns.tolist()
     for col in categorical_cols:
-        # Fill missing categorical values with the mode before encoding
         df[col].fillna(df[col].mode()[0], inplace=True)
         le = LabelEncoder()
         df[col] = le.fit_transform(df[col])
-        print(f"   - Encoded categorical column: {col}")
+        print(f"   - Kolom kategorikal '{col}' telah di-encode.")
 
-
+    # --- 4. Pisahkan Fitur dan Target ---
     X = df.drop(TARGET, axis=1)
     y = df[TARGET]
 
-    # --- 3. Define the Best Model Pipeline ---
-    # Based on your notebook, Random Forest with KNNImputer(k=7) was a top performer.
-    # We will build a full pipeline to handle all steps: scaling, imputation, SMOTE, and classification.
-
-    # We need to separate numerical columns for scaling and imputation
-    numerical_cols = X.select_dtypes(include=np.number).columns.tolist()
-
-    # Create separate pipelines for preprocessing numerical and categorical data
-    # In this case, all categorical data was already label encoded and filled,
-    # but a full pipeline would handle it more robustly. We will focus on the numerical pipeline.
-
-    # We will use ImbPipeline from imblearn to correctly handle SMOTE
-    # SMOTE should only be applied to the training data.
-    # The pipeline ensures this by applying it after the train-test split internally during cross-validation,
-    # but for final model saving, we'll apply it before fitting the classifier.
-
-    # First, let's resample the data with SMOTE
-    smote = SMOTE(random_state=42)
-    X_resampled, y_resampled = smote.fit_resample(X, y)
-    print("⚖️ Applied SMOTE for handling class imbalance.")
-
-
-    # Define the preprocessing and model pipeline
-    pipeline = Pipeline([
-        ('scaler', StandardScaler()),
+    # --- 5. Pipeline dengan Urutan yang Benar ---
+    # KNNImputer → SMOTE → StandardScaler → RandomForest
+    pipeline = ImbPipeline(steps=[
         ('imputer', KNNImputer(n_neighbors=7)),
-        ('classifier', RandomForestClassifier(n_estimators=100, max_depth=None, random_state=42))
+        ('smote', SMOTE(random_state=42)),
+        ('scaler', StandardScaler()),
+        ('classifier', RandomForestClassifier(
+            n_estimators=100,
+            max_depth=None,
+            random_state=42
+        ))
     ])
 
-    # --- 4. Train the Pipeline on the Full Resampled Dataset ---
-    print(f"💪 Training RandomForestClassifier with KNNImputer (k=7) on the full dataset...")
-    pipeline.fit(X_resampled, y_resampled)
-    print("✅ Model training complete.")
+    # --- 6. Latih Model ---
+    print("💪 Melatih pipeline (KNNImputer ➜ SMOTE ➜ Scaler ➜ RandomForest)...")
+    pipeline.fit(X, y)
+    print("✅ Proses pelatihan selesai.")
 
-    # --- 5. Save the Pipeline ---
+    # --- 7. Simpan Model ---
     joblib.dump(pipeline, model_output_path)
-    print(f"💾 Model pipeline saved to '{model_output_path}'")
-    print("🎉 Process finished successfully.")
+    print(f"💾 Model disimpan ke '{model_output_path}'")
+
+    # --- 8. Tampilkan Urutan Fitur ---
+    if hasattr(pipeline, 'feature_names_in_'):
+        print("📋 Urutan fitur dalam model:")
+        print(pipeline.feature_names_in_)
+    else:
+        print("⚠️ Model tidak memiliki atribut feature_names_in_ (gunakan sklearn >= 1.0).")
+
+    print("🎉 Proses selesai dengan sukses.")
 
 
 if __name__ == '__main__':
-    # This block will run when the script is executed directly
     train_and_save_model()
