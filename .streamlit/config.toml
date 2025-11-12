@@ -1,0 +1,5 @@
+[theme]
+baseFontSize = 23
+
+# Mengatur ukuran font untuk kode blocks (juga bisa dalam 'rem', cth: "1.1rem")
+codeFontSize = 18

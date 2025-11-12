@@ -1,7 +1,6 @@
 import streamlit as st
 import pandas as pd
 import joblib
-import altair as alt # Import Altair
 
 # =====================================================
 # 🩺 KONFIGURASI HALAMAN
@@ -12,59 +11,6 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded"
 )
-
-# --- CSS KUSTOM UNTUK MEMPERBESAR FONT (LEBIH AGRESIF) ---
-st.markdown("""
-<style>
-/* 1. Memperbesar Judul Utama */
-h1 {
-    font-size: 3.5em !important;
-}
-
-/* 2. Memperbesar Sub-Header */
-h2, h3 {
-    font-size: 2.2em !important;
-}
-
-/* 3. Memperbesar Teks Label Input (Paling penting untuk Number Input dan Selectbox) */
-/* Menargetkan class utama untuk label widget */
-[data-testid="stForm"] label, 
-.st-emotion-cache-1wb9f5u, /* Label for Number/Text Input */
-.st-emotion-cache-1erzcv, /* Label for Selectbox/Multiselect */
-label.st-emotion-cache-1wb9f5u,
-label.st-emotion-cache-1erzcv {
-    font-size: 1.35rem; /* Ukuran font label */
-    font-weight: bold;
-}
-
-/* 4. Memperbesar Teks Nilai Input (Angka/Pilihan yang dipilih) */
-[data-testid="stForm"] input,
-[data-testid="stForm"] .st-emotion-cache-1n76ch6 { 
-    font-size: 1.25rem !important;
-}
-
-/* 5. Memperbesar Teks di Tombol Prediksi */
-.stButton>button {
-    font-size: 1.6rem;
-    height: auto;
-    padding: 12px 25px;
-    font-weight: bold;
-}
-
-/* 6. Memperbesar Teks pada Tabel (Ringkasan Data & Probabilitas) */
-.dataframe {
-    font-size: 1.3rem !important;
-    line-height: 1.8rem;
-}
-
-/* 7. Memperbesar Teks Output Prediksi (Success/Error/Warning Banners) */
-[data-testid="stAlert"] {
-    font-size: 1.4rem;
-    padding: 15px;
-}
-</style>
-""", unsafe_allow_html=True)
-# ------------------------------------------
 
 # =====================================================
 # 🧠 MEMUAT MODEL YANG TELAH DILATIH
@@ -100,15 +46,11 @@ ascites_map = {'Tidak (N)': 0, 'Ya (Y)': 1}
 hepatomegaly_map = {'Tidak (N)': 0, 'Ya (Y)': 1}
 spiders_map = {'Tidak (N)': 0, 'Ya (Y)': 1}
 edema_map = {'Tidak (N)': 0, 'Sedikit (S)': 1, 'Ya (Y)': 2}
-
-# --- PENTING: MAPPING STATUS DIPERBAIKI UNTUK LABEL PENDEK DAN URUTAN ---
-# Urutan: 0, 1, 2
 status_map_reverse = {
-    0: 'Meninggal', 
-    1: 'Disensor',
-    2: 'Transplan', # Label disingkat agar tidak terpotong
+    0: 'D (Meninggal)',
+    1: 'C (Disensor)',
+    2: 'CL (Disensor karena Transplantasi Hati)'
 }
-# --------------------------------------------------------------------------
 
 # Tata letak kolom input
 col1, col2, col3 = st.columns(3)
@@ -162,27 +104,21 @@ data = {
 input_df = pd.DataFrame(data, index=[0])
 
 # =====================================================
-# 🧩 MENYESUAIKAN KOLOM DENGAN MODEL (FIX ORDER/NAMA)
+# 🧩 MENYESUAIKAN KOLOM DENGAN MODEL
 # =====================================================
 if hasattr(model, 'feature_names_in_'):
-    expected_features = model.feature_names_in_.tolist()
-    
-    # Periksa apakah ada kolom yang hilang atau berlebih
-    missing = [col for col in expected_features if col not in input_df.columns]
-    
-    if missing:
-        st.error(f"❌ Kolom yang diharapkan model hilang: {missing}")
-        st.stop()
-    
-    # Paksakan urutan DataFrame input agar sama dengan urutan model
-    try:
-        input_df = input_df[expected_features]
-    except KeyError as e:
-        st.error(f"⚠️ Kesalahan saat mengurutkan kolom. Pastikan nama-nama kolom input sudah benar: {e}")
-        st.stop()
-else:
-    st.warning("Model tidak menyediakan daftar fitur yang diharapkan. Melanjutkan dengan urutan input saat ini.")
+    # Pastikan kolom dan urutan sama persis dengan model
+    missing = [col for col in model.feature_names_in_ if col not in input_df.columns]
+    extra = [col for col in input_df.columns if col not in model.feature_names_in_]
 
+    if missing:
+        st.error(f"Kolom berikut hilang dari input: {missing}")
+        st.stop()
+    elif extra:
+        st.warning(f"Kolom tambahan ditemukan dan akan diabaikan: {extra}")
+        input_df = input_df[model.feature_names_in_]
+    else:
+        input_df = input_df[model.feature_names_in_]
 
 # =====================================================
 # 📊 MENAMPILKAN DATA INPUT
@@ -211,43 +147,13 @@ if st.button('🔮 Jalankan Prediksi'):
 
         # Menampilkan probabilitas
         st.subheader("📊 Tingkat Keyakinan Model (Probabilitas)")
-
-        status_cols = [status_map_reverse[i] for i in range(len(status_map_reverse))]
-        
         proba_df = pd.DataFrame(
             prediction_proba,
-            columns=status_cols,
+            columns=[status_map_reverse[i] for i in range(len(status_map_reverse))],
             index=['Probabilitas']
         )
-        st.dataframe(proba_df.style.format("{:.6f}"), use_container_width=True) 
-
-        # --- Bagian Altair untuk Grafik Batang
-        chart_data = proba_df.T.reset_index()
-        chart_data.columns = ['Status', 'Probabilitas']
-
-        status_order = status_cols
-        color_domain = status_order
-        color_range = ['#FF7676', '#466C95', '#5DAE8B']
-
-        chart = alt.Chart(chart_data).mark_bar().encode(
-            x=alt.X('Status', axis=alt.Axis(
-                labels=True, 
-                labelAngle=0,
-                title='Status Pasien', 
-                labelFontSize=20 
-            ), sort=status_order),
-            y=alt.Y('Probabilitas', axis=alt.Axis(
-                title='Tingkat Keyakinan', 
-                labelFontSize=20 
-            )),
-            color=alt.Color('Status', scale=alt.Scale(domain=color_domain, range=color_range)), # MENGATUR WARNA BERBEDA UNTUK SETIAP BATANG
-            tooltip=['Status', alt.Tooltip('Probabilitas', format='.2%')]
-        ).properties(
-            title='Distribusi Probabilitas Status Pasien'
-        ).interactive()
-
-        st.altair_chart(chart, use_container_width=True)
-        # --- Akhir Bagian Altair ---
+        st.write(proba_df)
+        st.bar_chart(proba_df.T)
 
     except Exception as e:
         st.error(f"⚠️ Terjadi kesalahan saat melakukan prediksi: {e}")
@@ -257,7 +163,7 @@ if st.button('🔮 Jalankan Prediksi'):
 # =====================================================
 st.markdown("---")
 st.warning("""
-**(Disclaimer):** 
+**Penafian (Disclaimer):**  
 Hasil prediksi dari model ini hanya digunakan untuk **tujuan informasi dan edukasi**.  
 Aplikasi ini **bukan alat diagnosis medis** dan tidak dapat menggantikan keputusan dokter atau tenaga kesehatan profesional.
 """)
