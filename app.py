@@ -221,34 +221,6 @@ if st.button('🔮 Jalankan Prediksi'):
         )
         st.dataframe(proba_df.style.format("{:.6f}"), use_container_width=True) 
 
-        # --- Bagian Altair untuk Grafik Batang
-        chart_data = proba_df.T.reset_index()
-        chart_data.columns = ['Status', 'Probabilitas']
-
-        status_order = status_cols
-        color_domain = status_order
-        color_range = ['#FF7676', '#466C95', '#5DAE8B']
-
-        chart = alt.Chart(chart_data).mark_bar().encode(
-            x=alt.X('Status', axis=alt.Axis(
-                labels=True, 
-                labelAngle=0,
-                title='Status Pasien', 
-                labelFontSize=20 
-            ), sort=status_order),
-            y=alt.Y('Probabilitas', axis=alt.Axis(
-                title='Tingkat Keyakinan', 
-                labelFontSize=20 
-            )),
-            color=alt.Color('Status', scale=alt.Scale(domain=color_domain, range=color_range)), # MENGATUR WARNA BERBEDA UNTUK SETIAP BATANG
-            tooltip=['Status', alt.Tooltip('Probabilitas', format='.2%')]
-        ).properties(
-            title='Distribusi Probabilitas Status Pasien'
-        ).interactive()
-
-        st.altair_chart(chart, use_container_width=True)
-        # --- Akhir Bagian Altair ---
-
     except Exception as e:
         st.error(f"⚠️ Terjadi kesalahan saat melakukan prediksi: {e}")
 
