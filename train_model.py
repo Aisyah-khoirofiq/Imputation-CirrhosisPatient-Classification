@@ -15,11 +15,11 @@ warnings.filterwarnings('ignore', category=FutureWarning)
 
 def train_and_save_model(data_path='cirrhosis.csv', model_output_path='cirrhosis_model.pkl'):
     """
-    Melatih model Random Forest dengan urutan preprocessing:
+    Melatih model klasifikasi dengan urutan preprocessing:
     1. Imputer (KNNImputer)
     2. SMOTE (menyeimbangkan kelas)
     3. Scaler (StandardScaler)
-    4. Klasifikasi (RandomForestClassifier)
+    4. Klasifikasi (ModelClasification)
     """
     print("🚀 Memulai proses pelatihan model...")
 
@@ -56,7 +56,7 @@ def train_and_save_model(data_path='cirrhosis.csv', model_output_path='cirrhosis
     y = df[TARGET]
 
     # --- 5. Pipeline dengan Urutan yang Benar ---
-    # KNNImputer → SMOTE → StandardScaler → RandomForest
+    # KNNImputer → SMOTE → StandardScaler → Klasifikasi Model
     pipeline = ImbPipeline(steps=[
         ('imputer', KNNImputer(n_neighbors=7)),
         ('smote', SMOTE(random_state=42)),
@@ -69,7 +69,6 @@ def train_and_save_model(data_path='cirrhosis.csv', model_output_path='cirrhosis
     ])
 
     # --- 6. Latih Model ---
-    print("💪 Melatih pipeline (KNNImputer ➜ SMOTE ➜ Scaler ➜ RandomForest)...")
     pipeline.fit(X, y)
     print("✅ Proses pelatihan selesai.")
 
