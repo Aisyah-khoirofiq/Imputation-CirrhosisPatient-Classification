@@ -83,7 +83,7 @@ except Exception as e:
 # =====================================================
 st.title("🩺 Aplikasi Prediksi Status Pasien Sirosis")
 st.markdown("""
-Aplikasi ini menggunakan model **Random Forest** yang telah dilatih untuk memprediksi status pasien sirosis 
+Aplikasi ini menggunakan model **Support Vector Machine** yang telah dilatih untuk memprediksi status pasien sirosis 
 berdasarkan data klinis dan laboratorium.  
 Silakan isi data pasien pada tabel input di bawah ini untuk mendapatkan hasil prediksi.
 """)
